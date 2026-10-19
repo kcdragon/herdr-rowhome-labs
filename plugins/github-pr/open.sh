@@ -3,7 +3,7 @@
 set -euo pipefail
 
 HERDR="${HERDR_BIN_PATH:-herdr}"
-pane="${HERDR_PANE_ID:-}"
+pane="${HERDR_PANE_ID:-$(jq -r '.focused_pane_id // empty' <<<"${HERDR_PLUGIN_CONTEXT_JSON:-{\}}")}"
 [[ -n "$pane" ]] || exit 0
 
 url="$("$HERDR" pane get "$pane" | jq -r '.result.pane.tokens.pr_url // empty')"
