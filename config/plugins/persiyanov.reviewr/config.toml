@@ -1,0 +1,3 @@
+theme = "catppuccin"
+# Open on the PR view: commits since the base branch plus uncommitted changes.
+default_scope = "branch"

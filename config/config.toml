@@ -1,3 +1,18 @@
+onboarding = false
+
+[ui.toast]
+delivery = "system"
+
+[ui.sound]
+enabled = false
+
+[ui]
+status_indicators = "symbols"
+
+[theme]
+name = "catppuccin"
+auto_switch = false
+
 # Agent sidebar layout with GitHub PR tokens from the rowhome.github-pr plugin.
 # Default rows, plus a third row showing the PR for the agent's branch.
 [ui.sidebar.agents]
@@ -23,3 +38,10 @@ rows = [
     ] },
   ],
 ]
+
+# Toggle the reviewr pane (persiyanov.reviewr) for the focused agent.
+[[keys.command]]
+key = "prefix+d"
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle"
+description = "review diff"

@@ -1,0 +1,5 @@
+# Plugins install.sh installs on every machine.
+#   github <owner/repo[/subdir]> <ref>   install from GitHub, pinned to <ref>
+#   local  <path>                        link a plugin directory in this repo
+github persiyanov/herdr-reviewr v0.48.0
+local  plugins/github-pr
