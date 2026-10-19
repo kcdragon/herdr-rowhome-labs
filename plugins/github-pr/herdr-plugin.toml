@@ -1,0 +1,32 @@
+id = "rowhome.github-pr"
+name = "GitHub PR status"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Show the GitHub PR for each agent's branch as sidebar tokens"
+platforms = ["linux", "macos"]
+
+# Populate tokens once the server is up.
+[[startup]]
+command = ["bash", "refresh.sh"]
+
+# Agents usually push / open PRs during a turn, so refresh whenever an agent
+# changes state (e.g. working -> idle) or a new agent shows up.
+[[events]]
+on = "pane.agent_status_changed"
+command = ["bash", "refresh.sh"]
+
+[[events]]
+on = "pane.agent_detected"
+command = ["bash", "refresh.sh"]
+
+[[actions]]
+id = "refresh"
+title = "Refresh GitHub PR status"
+contexts = ["workspace"]
+command = ["bash", "refresh.sh"]
+
+[[actions]]
+id = "open"
+title = "Open focused agent's PR in browser"
+contexts = ["workspace"]
+command = ["bash", "open.sh"]

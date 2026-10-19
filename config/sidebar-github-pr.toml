@@ -1,0 +1,25 @@
+# Agent sidebar layout with GitHub PR tokens from the rowhome.github-pr plugin.
+# Default rows, plus a third row showing the PR for the agent's branch.
+[ui.sidebar.agents]
+rows = [
+  ["state_icon", "machine", "workspace", "tab"],
+  ["agent"],
+  [
+    { token = "$pr", fg = "#89b4fa", bold = true },
+    { token = "$pr_state", rules = [
+      { equals = "open", fg = "#a6e3a1" },
+      { equals = "draft", fg = "#9399b2" },
+      { equals = "merged", fg = "#cba6f7" },
+      { equals = "closed", fg = "#f38ba8" },
+    ] },
+    { token = "$pr_checks", rules = [
+      { starts_with = "✓", fg = "#a6e3a1" },
+      { starts_with = "✗", fg = "#f38ba8" },
+      { starts_with = "●", fg = "#f9e2af" },
+    ] },
+    { token = "$pr_review", rules = [
+      { equals = "approved", fg = "#a6e3a1" },
+      { equals = "changes", fg = "#f38ba8" },
+    ] },
+  ],
+]
