@@ -13,14 +13,16 @@ git clone <this repo> ~/Code/herdr-rowhome-labs
 
 - symlinks `config/config.toml` → `~/.config/herdr/config.toml` (backing up an existing file)
 - installs/links every plugin in `plugins.txt` (GitHub plugins pinned to a ref; reinstalled
-  when the ref changes)
+  when the ref changes), and uninstalls/unlinks any plugin not listed there — including a
+  local plugin linked from an old clone path
 - symlinks `config/plugins/<plugin-id>/*` into that plugin's config dir
 - reloads the running herdr server
 
 Herdr doesn't copy config or plugins to SSH machines, and plugins run on the machine running
 the agents — so run `install.sh` on every machine. Requires `herdr`, `jq`, `git`.
 
-To add a plugin, add a line to `plugins.txt` and re-run `install.sh`.
+To add or remove a plugin, edit `plugins.txt` and re-run `install.sh`. Plugins installed by
+hand on a machine are removed on the next run.
 
 ## plugins/github-pr
 

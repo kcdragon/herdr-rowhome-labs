@@ -3,7 +3,7 @@
 #
 #   - symlinks config/config.toml to ~/.config/herdr/config.toml
 #   - symlinks config/plugins/<id>/* into each plugin's config dir
-#   - installs / links the plugins listed in plugins.txt
+#   - installs / links the plugins listed in plugins.txt, and removes the rest
 #   - reloads the running herdr server, if any
 set -euo pipefail
 
@@ -30,7 +30,32 @@ link() {
 
 link "$REPO/config/config.toml" "$HERDR_CONFIG/config.toml"
 
-plugins="$(herdr plugin list --json | jq -c '.result.plugins')"
+list_plugins() { herdr plugin list --json | jq -c '.result.plugins'; }
+
+# Declared plugins as JSON: GitHub sources and local manifest paths.
+declared="$(grep -Ev '^[[:space:]]*(#|$)' "$REPO/plugins.txt" | jq -R -s --arg repo "$REPO" '
+  [split("\n")[] | select(length > 0) | [splits("[[:space:]]+")]] as $rows
+  | { github: [$rows[] | select(.[0] == "github") | .[1]],
+      local:  [$rows[] | select(.[0] == "local")  | "\($repo)/\(.[1])/herdr-plugin.toml"] }')"
+
+# Remove registered plugins plugins.txt doesn't list. This also drops a local
+# plugin linked from an old clone path before it's relinked from this one.
+while IFS=$'\t' read -r id kind source; do
+  if [[ "$kind" == "github" ]]; then
+    herdr plugin uninstall "$id" >/dev/null
+    echo "uninstalled $source"
+  else
+    herdr plugin unlink "$id" >/dev/null
+    echo "unlinked $source"
+  fi
+done < <(list_plugins | jq -r --argjson d "$declared" '
+  .[] | (.source.owner + "/" + .source.repo + (if .source.subdir then "/" + .source.subdir else "" end)) as $gh
+      | .manifest_path as $m
+      | select(if .source.kind == "github" then ($d.github | index($gh) | not)
+               else ($d.local | index($m) | not) end)
+      | [.plugin_id, .source.kind, (if .source.kind == "github" then $gh else .manifest_path end)] | @tsv')
+
+plugins="$(list_plugins)"
 
 while read -r kind target ref; do
   [[ -z "$kind" || "$kind" == \#* ]] && continue
