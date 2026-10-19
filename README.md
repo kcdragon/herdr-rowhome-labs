@@ -8,11 +8,10 @@ Shows the GitHub PR for each agent's current branch in the Agent sidebar.
 
 For every agent pane, `refresh.sh` resolves the pane's cwd → git branch → `gh pr view`,
 then reports pane tokens: `$pr` (`#123`), `$pr_state` (open/draft/merged/closed),
-`$pr_checks` (✓/✗/● checks), `$pr_review` (approved/changes/in review), `$pr_url`.
+`$pr_checks` (✓/✗/● checks), `$pr_review` (approved/changes/in review).
 
 Refreshes on server startup, whenever an agent changes status or is detected, and on
-demand via the `rowhome.github-pr.refresh` action. `rowhome.github-pr.open` opens the
-focused pane's PR in the browser.
+demand via the `rowhome.github-pr.refresh` action.
 
 Requires `gh` (authenticated), `jq`, `git`, bash ≥ 4.
 

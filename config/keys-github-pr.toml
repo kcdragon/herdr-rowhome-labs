@@ -1,7 +1,0 @@
-# Open the focused agent's PR in GitHub. Click the agent in the sidebar to
-# focus it, then press prefix+u. (prefix+o is taken by open_notification_target.)
-[[keys.command]]
-key = "prefix+u"
-type = "plugin_action"
-command = "rowhome.github-pr.open"
-description = "open agent PR in GitHub"

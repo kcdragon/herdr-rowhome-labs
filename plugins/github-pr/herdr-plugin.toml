@@ -24,9 +24,3 @@ id = "refresh"
 title = "Refresh GitHub PR status"
 contexts = ["workspace"]
 command = ["bash", "refresh.sh"]
-
-[[actions]]
-id = "open"
-title = "Open focused agent's PR in browser"
-contexts = ["workspace"]
-command = ["bash", "open.sh"]

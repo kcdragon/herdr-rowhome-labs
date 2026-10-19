@@ -6,7 +6,7 @@ set -uo pipefail
 HERDR="${HERDR_BIN_PATH:-herdr}"
 SOURCE="plugin:${HERDR_PLUGIN_ID:-rowhome.github-pr}"
 STATE_DIR="${HERDR_PLUGIN_STATE_DIR:-${TMPDIR:-/tmp}/herdr-github-pr}"
-TOKENS=(pr pr_state pr_checks pr_review pr_url)
+TOKENS=(pr pr_state pr_checks pr_review)
 
 mkdir -p "$STATE_DIR"
 LOCK="$STATE_DIR/lock"
@@ -32,14 +32,14 @@ clear_pane() {
   "$HERDR" pane report-metadata "$1" --source "$SOURCE" "${args[@]}" >/dev/null
 }
 
-# Prints "pr state checks review url" (0x1f-separated) for the PR of the branch checked out
+# Prints "pr state checks review" (0x1f-separated) for the PR of the branch checked out
 # in $1, or nothing when there is no PR.
 lookup_pr() {
   local dir="$1" branch
   branch="$(git -C "$dir" symbolic-ref --quiet --short HEAD 2>/dev/null)" || return 0
   case "$branch" in main|master|develop|trunk) return 0 ;; esac
 
-  (cd "$dir" && gh pr view --json number,state,isDraft,reviewDecision,statusCheckRollup,url 2>/dev/null) |
+  (cd "$dir" && gh pr view --json number,state,isDraft,reviewDecision,statusCheckRollup 2>/dev/null) |
     jq -r '
       def checks:
         [.statusCheckRollup[]? | (.conclusion // .state // "") | ascii_upcase] as $c
@@ -52,7 +52,7 @@ lookup_pr() {
       def state:
         if .state == "OPEN" and .isDraft then "draft" else (.state | ascii_downcase) end;
       [ "#\(.number)", state, (if .state == "OPEN" then checks else "" end),
-        (if .state == "OPEN" then review else "" end), .url ] | join("\u001f")'
+        (if .state == "OPEN" then review else "" end) ] | join("\u001f")'
 }
 
 refresh_all() {
@@ -75,12 +75,12 @@ refresh_all() {
       continue
     fi
 
-    local num state checks review url
-    IFS=$'\x1f' read -r num state checks review url <<<"$result"
+    local num state checks review
+    IFS=$'\x1f' read -r num state checks review <<<"$result"
     # Empty token values clear that key, so idle fields simply disappear.
     "$HERDR" pane report-metadata "$pane" --source "$SOURCE" \
       --token "pr=$num" --token "pr_state=$state" --token "pr_checks=$checks" \
-      --token "pr_review=$review" --token "pr_url=$url" >/dev/null
+      --token "pr_review=$review" >/dev/null
   done < <(jq -r '.result.agents[] | [.pane_id, (.foreground_cwd // .cwd)] | @tsv' <<<"$agents")
 }
 
