@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Popup form: ask for the agent, prompt and branch, then queue the task for
+# Form (an overlay pane): ask for the agent, prompt and branch, then queue the task for
 # launch.sh. NEW_TASK_ROOT is the repo's main checkout.
 set -uo pipefail
 
