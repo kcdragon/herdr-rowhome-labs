@@ -1,0 +1,19 @@
+id = "rowhome.reviewr-below"
+name = "reviewr below agents"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Keep a reviewr pane open below every agent"
+platforms = ["linux", "macos"]
+
+[[startup]]
+command = ["bash", "ensure.sh"]
+
+[[events]]
+on = "pane.agent_detected"
+command = ["bash", "ensure.sh"]
+
+[[actions]]
+id = "ensure"
+title = "Open reviewr below every agent"
+contexts = ["workspace"]
+command = ["bash", "ensure.sh"]

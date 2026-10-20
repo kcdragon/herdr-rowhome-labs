@@ -41,5 +41,12 @@ Requires `gh` (authenticated), `jq`, `git`, bash ≥ 4.
 ## reviewr
 
 [persiyanov/herdr-reviewr](https://github.com/persiyanov/herdr-reviewr) — review the agent's
-diff in a pane. `prefix+d` toggles it. Configured to open on the `branch` scope (commits since
-the base branch plus uncommitted changes); `u` switches to uncommitted only, `3` shows the PR.
+diff in a pane, opened as a split below the agent. Configured to open on the `branch` scope
+(commits since the base branch plus uncommitted changes); `u` switches to uncommitted only,
+`3` shows the PR. `prefix+d` toggles it for the workspace.
+
+## plugins/reviewr-below
+
+Keeps a reviewr pane below the first agent of every tab. Runs on server startup and whenever
+herdr detects a new agent, skipping tabs that already have a reviewr pane or whose agent isn't
+in a git repo. Run the `rowhome.reviewr-below.ensure` action to restore panes you closed.
