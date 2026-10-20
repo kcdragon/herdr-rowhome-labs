@@ -4,3 +4,4 @@
 github persiyanov/herdr-reviewr v0.48.0
 local  plugins/github-pr
 local  plugins/reviewr-below
+local  plugins/new-task

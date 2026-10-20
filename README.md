@@ -50,3 +50,21 @@ diff in a pane, opened as a split below the agent. Configured to open on the `br
 Keeps a reviewr pane below the first agent of every tab. Runs on server startup and whenever
 herdr detects a new agent, skipping tabs that already have a reviewr pane or whose agent isn't
 in a git repo. Run the `rowhome.reviewr-below.ensure` action to restore panes you closed.
+
+## plugins/new-task
+
+Conductor-style task launcher. `prefix+a` opens a form for the focused pane's repo (its main
+checkout, even from a worktree) asking for the agent, the prompt (leave it empty to write it in
+`$EDITOR`) and the branch (suggested from the prompt). Then it:
+
+1. creates a git worktree for the branch from `origin/HEAD` (after a fetch) as a new herdr
+   workspace grouped under the repo, and focuses it
+2. runs the project's setup script in the new pane: `.herdr/setup.sh` if the repo has one,
+   otherwise `scripts.setup` from Conductor's `conductor.json`. `HERDR_ROOT_PATH` and
+   `CONDUCTOR_ROOT_PATH` point at the main checkout, e.g. to copy `.env` files. If setup fails,
+   the agent isn't started
+3. starts the agent in that pane and sends it the prompt
+
+Defaults (agent kind, branch prefix) live in `config/plugins/rowhome.new-task/config.sh`.
+Worktrees go under herdr's `worktrees.directory` (default `~/.herdr/worktrees`). Remove one
+with herdr's "Delete worktree checkout" on the workspace row.

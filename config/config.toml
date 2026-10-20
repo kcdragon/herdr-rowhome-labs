@@ -45,3 +45,10 @@ key = "prefix+d"
 type = "plugin_action"
 command = "persiyanov.reviewr.toggle"
 description = "review diff"
+
+# Start an agent on a prompt in a new git worktree (rowhome.new-task).
+[[keys.command]]
+key = "prefix+a"
+type = "plugin_action"
+command = "rowhome.new-task.new"
+description = "new task in a worktree"
