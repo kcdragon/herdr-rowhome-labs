@@ -5,7 +5,7 @@ Personal herdr setup, shared across machines.
 ## Set up a machine
 
 ```bash
-git clone <this repo> ~/Code/herdr-rowhome-labs
+git clone https://github.com/kcdragon/herdr-rowhome-labs.git ~/Code/herdr-rowhome-labs
 ~/Code/herdr-rowhome-labs/install.sh
 ```
 
