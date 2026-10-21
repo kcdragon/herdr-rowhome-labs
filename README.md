@@ -53,18 +53,21 @@ in a git repo. Run the `rowhome.reviewr-below.ensure` action to restore panes yo
 
 ## plugins/new-task
 
-Conductor-style task launcher. `prefix+a` opens a form for the focused pane's repo (its main
-checkout, even from a worktree) asking for the agent, the prompt (leave it empty to write it in
-`$EDITOR`) and the branch (suggested from the prompt). Then it:
+Conductor-style workspaces. `prefix+a` asks for a branch name, then, for the focused pane's repo
+(its main checkout, even from a worktree):
 
-1. creates a git worktree for the branch from `origin/HEAD` (after a fetch) as a new herdr
-   workspace grouped under the repo, and focuses it
-2. runs the project's setup script in the new pane: `.herdr/setup.sh` if the repo has one,
-   otherwise `scripts.setup` from Conductor's `conductor.json`. `HERDR_ROOT_PATH` and
-   `CONDUCTOR_ROOT_PATH` point at the main checkout, e.g. to copy `.env` files. If setup fails,
-   the agent isn't started
-3. starts the agent in that pane and sends it the prompt
+1. creates a git worktree for the branch from `origin/HEAD` (after a fetch), opened as a new
+   herdr workspace grouped under the repo, and focuses it
+2. exports Conductor's variables in that pane's shell: `CONDUCTOR_WORKSPACE_NAME`,
+   `CONDUCTOR_WORKSPACE_PATH`, `CONDUCTOR_ROOT_PATH`, `CONDUCTOR_DEFAULT_BRANCH`,
+   `CONDUCTOR_IS_LOCAL=1` and `CONDUCTOR_PORT` (the first of ten ports reserved for this
+   worktree, starting at 55100)
+3. runs the project's Conductor setup script there: `scripts.setup` from
+   `.conductor/settings.local.toml` (read from the main checkout), `.conductor/settings.toml`,
+   or `conductor.json`. If it fails, the agent isn't started
+4. starts the agent (Claude by default) with no prompt, for you to type the first one
 
+The variables only exist in that first pane; other panes in the workspace don't get them.
 Defaults (agent kind, branch prefix) live in `config/plugins/rowhome.new-task/config.sh`.
-Worktrees go under herdr's `worktrees.directory` (default `~/.herdr/worktrees`). Remove one
-with herdr's "Delete worktree checkout" on the workspace row.
+Worktrees go under herdr's `worktrees.directory` (default `~/.herdr/worktrees`). Remove one with
+herdr's "Delete worktree checkout" on the workspace row; Conductor `archive` scripts aren't run.

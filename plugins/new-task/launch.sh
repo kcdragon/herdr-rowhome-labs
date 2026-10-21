@@ -1,24 +1,53 @@
 #!/usr/bin/env bash
-# For every task the form queued: create a worktree workspace, run the
-# project's setup script in it, then start the agent and send it the prompt.
+# For every task the form queued: create a worktree workspace, export
+# Conductor's workspace variables in its pane, run the project's setup script
+# there, then start the agent for you to prompt.
 set -uo pipefail
 
 HERDR="${HERDR_BIN_PATH:-herdr}"
 STATE_DIR="${HERDR_PLUGIN_STATE_DIR:-${TMPDIR:-/tmp}/herdr-new-task}"
 QUEUE="$STATE_DIR/queue"
+PORTS="$STATE_DIR/ports"
+FIRST_PORT=55100
 
-notify() { "$HERDR" notification show "New task" --body "$1" >/dev/null 2>&1; }
+agent=claude
+CONFIG="${HERDR_PLUGIN_CONFIG_DIR:-}/config.sh"
+[[ -f "$CONFIG" ]] && source "$CONFIG"
+
+notify() { "$HERDR" notification show "New worktree" --body "$1" >/dev/null 2>&1; }
 error_message() { jq -r '.error.message // empty' <<<"$1" 2>/dev/null || echo "$1"; }
 
-# Prints the shell command that sets up a fresh checkout: .herdr/setup.sh, else
-# Conductor's conductor.json scripts.setup. Prints nothing when there is none.
+# Prints the project's setup command, read the way Conductor does: the
+# gitignored .conductor/settings.local.toml (from the main checkout), then
+# .conductor/settings.toml, then the legacy conductor.json.
 setup_command() {
-  local dir="$1"
-  if [[ -f "$dir/.herdr/setup.sh" ]]; then
-    echo "bash .herdr/setup.sh"
-  elif [[ -f "$dir/conductor.json" ]]; then
-    jq -r '.scripts.setup // empty' "$dir/conductor.json"
+  local root="$1" dir="$2" toml
+  for toml in "$root/.conductor/settings.local.toml" "$dir/.conductor/settings.toml"; do
+    [[ -f "$toml" ]] || continue
+    python3 -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb")).get("scripts", {}).get("setup", ""))' "$toml" 2>/dev/null |
+      grep . && return
+  done
+  [[ -f "$dir/conductor.json" ]] && jq -r '.scripts.setup // empty' "$dir/conductor.json"
+}
+
+# Gives each worktree its own block of ten ports, like Conductor's
+# CONDUCTOR_PORT..CONDUCTOR_PORT+9. Blocks of deleted worktrees are reused.
+allocate_port() {
+  local dir="$1" port
+  mkdir "$PORTS.lock" 2>/dev/null || { sleep 1; mkdir "$PORTS.lock" 2>/dev/null; }
+  touch "$PORTS"
+  # Drop worktrees that no longer exist.
+  while IFS=$'\t' read -r port path; do
+    [[ -d "$path" ]] && printf '%s\t%s\n' "$port" "$path"
+  done <"$PORTS" >"$PORTS.tmp" && mv "$PORTS.tmp" "$PORTS"
+  port="$(awk -F'\t' -v d="$dir" '$2 == d { print $1 }' "$PORTS")"
+  if [[ -z "$port" ]]; then
+    port=$FIRST_PORT
+    while cut -f1 "$PORTS" | grep -qx "$port"; do port=$((port + 10)); done
+    printf '%s\t%s\n' "$port" "$dir" >>"$PORTS"
   fi
+  rmdir "$PORTS.lock" 2>/dev/null
+  echo "$port"
 }
 
 # Agent names must be unique and match [a-z][a-z0-9_-]{0,31}.
@@ -36,12 +65,14 @@ agent_name() {
 }
 
 launch() {
-  local root="$1" agent="$2" branch="$3" prompt="$4"
-  local base out pane dir setup code name
+  local root="$1" branch="$2"
+  local base default_branch out pane dir setup env code
 
   # Branch from the remote's default branch when there is one.
   git -C "$root" fetch --quiet origin 2>/dev/null
   base="$(git -C "$root" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo HEAD)"
+  default_branch="${base#origin/}"
+  [[ "$default_branch" == HEAD ]] && default_branch="$(git -C "$root" symbolic-ref --quiet --short HEAD)"
 
   if ! out="$("$HERDR" worktree create --cwd "$root" --branch "$branch" --base "$base" --label "$branch" --focus 2>&1)"; then
     notify "Couldn't create worktree $branch: $(error_message "$out")"
@@ -55,53 +86,38 @@ launch() {
     git -C "$dir" branch --quiet --unset-upstream
   fi
 
-  setup="$(setup_command "$dir")"
-  if [[ -n "$setup" ]]; then
-    # Run it in the pane so its output stays visible. CONDUCTOR_ROOT_PATH keeps
-    # Conductor setup scripts (e.g. copying .env from the main checkout) working.
-    "$HERDR" pane run "$pane" "export HERDR_ROOT_PATH=$(printf %q "$root") CONDUCTOR_ROOT_PATH=$(printf %q "$root"); ( $setup ); echo \"__setup_exit=\$?\"" >/dev/null
+  # Exported in the pane's shell, so the setup script, the agent and anything
+  # you run there later all see them.
+  env="export CONDUCTOR_IS_LOCAL=1"
+  env+=" CONDUCTOR_WORKSPACE_NAME=$(printf %q "$(basename "$dir")")"
+  env+=" CONDUCTOR_WORKSPACE_PATH=$(printf %q "$dir")"
+  env+=" CONDUCTOR_ROOT_PATH=$(printf %q "$root")"
+  env+=" CONDUCTOR_DEFAULT_BRANCH=$(printf %q "$default_branch")"
+  env+=" CONDUCTOR_PORT=$(allocate_port "$dir")"
+
+  setup="$(setup_command "$root" "$dir")"
+  if [[ -z "$setup" ]]; then
+    "$HERDR" pane run "$pane" "$env; clear" >/dev/null
+  else
+    # Run it in the pane so its output stays visible.
+    "$HERDR" pane run "$pane" "$env; ( $setup ); echo \"__setup_exit=\$?\"" >/dev/null
     out="$("$HERDR" pane wait-output "$pane" --regex '__setup_exit=[0-9]+' --timeout 1800000 2>&1)"
     code="$(jq -r '.result.matched_line // empty' <<<"$out" 2>/dev/null)"
     code="${code##*=}"
     if [[ "$code" != 0 ]]; then
-      notify "Setup failed in $branch; agent not started"
+      notify "Setup failed in $branch; $agent not started"
       return
     fi
   fi
 
-  name="$(agent_name "$branch")"
-  # Retry briefly: the shell may not have reclaimed the foreground from setup yet.
+  # Retry briefly: the shell may not have reclaimed the foreground yet. A
+  # blocked start (e.g. a "trust this folder?" dialog) is fine: you answer it.
   for _ in 1 2 3 4 5; do
-    out="$("$HERDR" agent start "$name" --kind "$agent" --pane "$pane" --timeout 60000 2>&1)" && break
-    [[ "$(jq -r '.error.code // empty' <<<"$out" 2>/dev/null)" == agent_not_ready ]] && break
+    out="$("$HERDR" agent start "$(agent_name "$branch")" --kind "$agent" --pane "$pane" --timeout 60000 2>&1)" && return
+    [[ "$(jq -r '.error.code // empty' <<<"$out" 2>/dev/null)" == agent_not_ready ]] && return
     sleep 1
   done
-  case "$(jq -r '.error.code // empty' <<<"$out" 2>/dev/null)" in
-    "") ;;
-    agent_not_ready)
-      # Usually the agent's "trust this folder?" dialog in the new checkout.
-      notify "$name is waiting for you to answer its startup dialog; the prompt is sent after"
-      if ! "$HERDR" agent wait "$name" --until idle --until done --timeout 600000 >/dev/null 2>&1; then
-        notify "$name never became ready; prompt not sent"
-        return
-      fi
-      ;;
-    *)
-      notify "Couldn't start $agent in $branch: $(error_message "$out")"
-      return
-      ;;
-  esac
-
-  # A freshly started agent can drop the Enter, leaving the prompt typed but
-  # unsent. --wait reports that as agent_prompt_stalled; a timeout here just
-  # means the agent is still working, which is fine.
-  sleep 2
-  out="$("$HERDR" agent prompt "$name" "$prompt" --wait --timeout 15000 2>&1)"
-  case "$(jq -r '.error.code // empty' <<<"$out" 2>/dev/null)" in
-    "" | timeout) ;;
-    agent_prompt_stalled) "$HERDR" agent send-keys "$name" enter >/dev/null ;;
-    *) notify "Couldn't send the prompt to $name: $(error_message "$out")" ;;
-  esac
+  notify "Couldn't start $agent in $branch: $(error_message "$out")"
 }
 
 mkdir -p "$QUEUE"
@@ -110,8 +126,7 @@ for task in "$QUEUE"/*.json; do
   # Claim the task; a concurrent run may already have it.
   mv "$task" "$task.claimed" 2>/dev/null || continue
   (
-    launch "$(jq -r .root "$task.claimed")" "$(jq -r .agent "$task.claimed")" \
-      "$(jq -r .branch "$task.claimed")" "$(jq -r .prompt "$task.claimed")"
+    launch "$(jq -r .root "$task.claimed")" "$(jq -r .branch "$task.claimed")"
     rm -f "$task.claimed"
   ) &
 done

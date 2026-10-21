@@ -2,20 +2,20 @@ id = "rowhome.new-task"
 name = "New task"
 version = "0.1.0"
 min_herdr_version = "0.9.3"
-description = "Start an agent on a prompt in a fresh git worktree, after the project's setup script"
+description = "Open an agent in a fresh git worktree after running the project's Conductor setup script"
 platforms = ["linux", "macos"]
 
 # Bound to a key: opens the form for the focused pane's repo.
 [[actions]]
 id = "new"
-title = "New task in a worktree"
+title = "New worktree with an agent"
 contexts = ["workspace"]
 command = ["bash", "new.sh"]
 
 # Called by the form: creates the worktrees and agents it queued.
 [[actions]]
 id = "launch"
-title = "Launch queued tasks"
+title = "Launch queued worktrees"
 command = ["bash", "launch.sh"]
 
 [[panes]]

@@ -3,5 +3,5 @@
 # Agent kind to start: claude, codex, gemini, opencode, ... (see `herdr agent start --help`).
 agent=claude
 
-# Prepended to the branch name suggested from the prompt, e.g. "mike/".
+# Prepended to the suggested branch name, e.g. "mike/".
 branch_prefix=""
