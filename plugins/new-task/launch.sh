@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# For every task the form queued: create a worktree workspace, export
-# Conductor's workspace variables in its pane, run the project's setup script
-# there, then start the agent for you to prompt.
+# Usage: launch.sh <repo root>
+# Create a worktree workspace on a made-up branch, export Conductor's
+# workspace variables in its pane, run the project's setup script there, then
+# start the agent for you to prompt.
 set -uo pipefail
 
 HERDR="${HERDR_BIN_PATH:-herdr}"
 STATE_DIR="${HERDR_PLUGIN_STATE_DIR:-${TMPDIR:-/tmp}/herdr-new-task}"
-QUEUE="$STATE_DIR/queue"
 PORTS="$STATE_DIR/ports"
 FIRST_PORT=55100
 
 agent=claude
+branch_prefix=""
 CONFIG="${HERDR_PLUGIN_CONFIG_DIR:-}/config.sh"
 [[ -f "$CONFIG" ]] && source "$CONFIG"
 
@@ -50,6 +51,23 @@ allocate_port() {
   echo "$port"
 }
 
+ADJECTIVES=(amber bold brisk calm clever cosmic crisp dapper eager fuzzy gentle golden happy hidden jolly keen lively lucky mellow nimble plucky quiet rapid rosy rustic shiny silent snowy spry sunny swift tidy vivid witty zesty)
+NOUNS=(acorn badger beacon brook canyon cedar comet coral falcon fern fjord harbor heron island lagoon lantern maple meadow otter pebble pine quartz raven reef ridge river sparrow summit thicket tundra valley willow)
+
+# Makes up a branch name like "lucky-otter" that isn't a branch or worktree yet.
+new_branch() {
+  local root="$1" branch n=0
+  while :; do
+    branch="$branch_prefix${ADJECTIVES[RANDOM % ${#ADJECTIVES[@]}]}-${NOUNS[RANDOM % ${#NOUNS[@]}]}"
+    # After a few collisions, add a number.
+    (( n++ >= 5 )) && branch+="-$((RANDOM % 100))"
+    git -C "$root" show-ref --quiet "refs/heads/$branch" "refs/remotes/origin/$branch" && continue
+    git -C "$root" worktree list --porcelain | grep -q "/${branch##*/}\$" && continue
+    echo "$branch"
+    return
+  done
+}
+
 # Agent names must be unique and match [a-z][a-z0-9_-]{0,31}.
 agent_name() {
   local base taken name n=2
@@ -65,7 +83,7 @@ agent_name() {
 }
 
 launch() {
-  local root="$1" branch="$2"
+  local root="$1" branch
   local base default_branch out pane dir setup env code
 
   # Branch from the remote's default branch when there is one.
@@ -74,6 +92,7 @@ launch() {
   default_branch="${base#origin/}"
   [[ "$default_branch" == HEAD ]] && default_branch="$(git -C "$root" symbolic-ref --quiet --short HEAD)"
 
+  branch="$(new_branch "$root")"
   if ! out="$("$HERDR" worktree create --cwd "$root" --branch "$branch" --base "$base" --label "$branch" --focus 2>&1)"; then
     notify "Couldn't create worktree $branch: $(error_message "$out")"
     return
@@ -120,14 +139,4 @@ launch() {
   notify "Couldn't start $agent in $branch: $(error_message "$out")"
 }
 
-mkdir -p "$QUEUE"
-for task in "$QUEUE"/*.json; do
-  [[ -e "$task" ]] || continue
-  # Claim the task; a concurrent run may already have it.
-  mv "$task" "$task.claimed" 2>/dev/null || continue
-  (
-    launch "$(jq -r .root "$task.claimed")" "$(jq -r .branch "$task.claimed")"
-    rm -f "$task.claimed"
-  ) &
-done
-wait
+launch "$1"

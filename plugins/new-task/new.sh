@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Open the new-task form for the repo of the focused pane.
+# Start a new worktree with an agent for the repo of the focused pane.
 set -uo pipefail
 
 HERDR="${HERDR_BIN_PATH:-herdr}"
@@ -21,5 +21,4 @@ if [[ -z "$common" ]]; then
 fi
 root="$(git -C "$common/.." rev-parse --show-toplevel 2>/dev/null || dirname "$common")"
 
-"$HERDR" plugin pane open --plugin "${HERDR_PLUGIN_ID:-rowhome.new-task}" --entrypoint form \
-  --placement overlay --env "NEW_TASK_ROOT=$root" >/dev/null
+exec bash "$(dirname "$0")/launch.sh" "$root"

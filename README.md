@@ -53,10 +53,10 @@ in a git repo. Run the `rowhome.reviewr-below.ensure` action to restore panes yo
 
 ## plugins/new-task
 
-Conductor-style workspaces. `prefix+a` asks for a branch name, then, for the focused pane's repo
-(its main checkout, even from a worktree):
+Conductor-style workspaces. `prefix+a`, for the focused pane's repo (its main checkout, even from
+a worktree):
 
-1. creates a git worktree for the branch from `origin/HEAD` (after a fetch), opened as a new
+1. creates a git worktree on a made-up branch (e.g. `lucky-otter`) from `origin/HEAD` (after a fetch), opened as a new
    herdr workspace grouped under the repo, and focuses it
 2. exports Conductor's variables in that pane's shell: `CONDUCTOR_WORKSPACE_NAME`,
    `CONDUCTOR_WORKSPACE_PATH`, `CONDUCTOR_ROOT_PATH`, `CONDUCTOR_DEFAULT_BRANCH`,
