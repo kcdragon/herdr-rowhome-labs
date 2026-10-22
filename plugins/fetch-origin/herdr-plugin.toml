@@ -1,0 +1,26 @@
+id = "rowhome.fetch-origin"
+name = "Fetch origin"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Keep origin/main fresh in every agent's repo so branch diffs drop merged work"
+platforms = ["linux", "macos"]
+
+[[startup]]
+command = ["bash", "fetch.sh"]
+
+# Merges usually happen during or between agent turns, so fetch whenever an
+# agent changes state or shows up (throttled per repo).
+[[events]]
+on = "pane.agent_status_changed"
+command = ["bash", "fetch.sh"]
+
+[[events]]
+on = "pane.agent_detected"
+command = ["bash", "fetch.sh"]
+
+# Ignores the throttle, e.g. right after merging in GitHub's web UI.
+[[actions]]
+id = "fetch"
+title = "Fetch origin for every agent's repo"
+contexts = ["workspace"]
+command = ["bash", "fetch.sh", "--now"]

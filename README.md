@@ -71,3 +71,15 @@ The variables only exist in that first pane; other panes in the workspace don't 
 Defaults (agent kind, branch prefix) live in `config/plugins/rowhome.new-task/config.sh`.
 Worktrees go under herdr's `worktrees.directory` (default `~/.herdr/worktrees`). Remove one with
 herdr's "Delete worktree checkout" on the workspace row; Conductor `archive` scripts aren't run.
+
+## plugins/fetch-origin
+
+Keeps `origin/main` current in every agent's repo, so reviewr's branch diff stops showing work
+that has already merged. A merge on GitHub doesn't move your local `origin/main` until something
+fetches.
+
+Runs `git fetch --prune origin` for each repo with an agent (once per repo; worktrees share refs)
+on server startup and whenever an agent changes status or is detected, at most every two minutes
+per repo. After merging in GitHub's web UI while agents sit idle, run the
+`rowhome.fetch-origin.fetch` action to fetch right away. Only updates remote-tracking refs: it
+never touches your local `main` or any checkout.
