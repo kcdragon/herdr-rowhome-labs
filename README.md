@@ -76,22 +76,17 @@ or start follow-up work in a new worktree.
 Lays out every new worktree (herdr's "New worktree", `prefix+shift+g`, or `herdr worktree
 create`) using the project's Conductor scripts:
 
-```
-┌──────────────────┬──────────────────┐
-│ claude (focused) │ app:             │
-├──────────────────┤ setup, then run  │
-│ reviewr          │                  │
-└──────────────────┴──────────────────┘
-```
+- tab `claude`: Claude, focused, with reviewr below it
+- tab `app`: the project's setup script, then its run scripts
 
 1. Fetches and fast-forwards the new branch to `origin/<default>` (herdr branches from the main
    checkout's possibly stale `HEAD`; fast-forward only, so nothing can be lost).
-2. Opens an `app` pane on the right that runs `scripts.setup`, then every `scripts.run` command
+2. Opens an `app` tab that runs `scripts.setup`, then every `scripts.run` command
    side by side (`[scripts.run.<name>]` tables included). If setup fails, nothing runs and you get
-   a notification; rerun with the command shown in the pane. Ctrl-C stops the run scripts.
-3. Names the first pane `claude` and starts Claude there, focused (`agent_command` in
-   `config/plugins/rowhome.worktree-setup/config.sh`). `reviewr-below` then adds reviewr under it;
-   reviewr's own `auto_open` is off so it doesn't grab the first pane first.
+   a notification; rerun with the command shown in the tab. Ctrl-C stops the run scripts.
+3. Names the first tab `claude` and starts Claude there; that tab stays active (`agent_command`
+   in `config/plugins/rowhome.worktree-setup/config.sh`). `reviewr-below` then adds reviewr under
+   it; reviewr's own `auto_open` is off so it doesn't grab the first pane first.
 
 Scripts are read like Conductor does, key by key: `.conductor/settings.local.toml` from the main
 checkout, then `.conductor/settings.toml`, then `conductor.json`. No `CONDUCTOR_*` variables are

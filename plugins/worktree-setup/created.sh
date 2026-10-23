@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # A new worktree: bring its branch up to origin's default branch, start Claude
-# in the first pane, and run the project's setup and run scripts in a pane to
-# its right. (reviewr-below then adds reviewr under Claude.)
+# in the first tab, and run the project's setup and run scripts in an "app"
+# tab. (reviewr-below then adds reviewr under Claude.)
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
 
@@ -20,15 +20,14 @@ fi
 
 scripts="$(conductor_scripts "$dir")"
 if [[ -n "$(jq -r '(.setup // "") + (.run // [] | join(""))' <<<"$scripts")" ]]; then
-  out="$("$HERDR" pane split "$pane" --direction right --cwd "$dir" --no-focus 2>&1)"
-  app="$(jq -r '.result.pane.pane_id // empty' <<<"$out" 2>/dev/null)"
+  out="$("$HERDR" tab create --workspace "${HERDR_WORKSPACE_ID:-}" --cwd "$dir" --label app --no-focus 2>&1)"
+  app="$(jq -r '.result.root_pane.pane_id // empty' <<<"$out" 2>/dev/null)"
   if [[ -n "$app" ]]; then
-    "$HERDR" pane rename "$app" app >/dev/null
     "$HERDR" pane run "$app" "bash $(printf %q "$PLUGIN_ROOT/app.sh")" >/dev/null
   else
-    notify "Worktree setup" "Couldn't open the app pane in $(basename "$dir"): $out"
+    notify "Worktree setup" "Couldn't open the app tab in $(basename "$dir"): $out"
   fi
 fi
 
-"$HERDR" pane rename "$pane" "$agent_command" >/dev/null
+[[ -n "${HERDR_TAB_ID:-}" ]] && "$HERDR" tab rename "$HERDR_TAB_ID" "$agent_command" >/dev/null
 "$HERDR" pane run "$pane" "$agent_command" >/dev/null
