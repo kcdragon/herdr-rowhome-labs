@@ -81,5 +81,13 @@ fetches.
 Runs `git fetch --prune origin` for each repo with an agent (once per repo; worktrees share refs)
 on server startup and whenever an agent changes status or is detected, at most every two minutes
 per repo. After merging in GitHub's web UI while agents sit idle, run the
-`rowhome.fetch-origin.fetch` action to fetch right away. Only updates remote-tracking refs: it
-never touches your local `main` or any checkout.
+`rowhome.fetch-origin.fetch` action to fetch right away. It never touches your local `main`.
+
+Squash merges need one more step: the branch's commits never become part of `main`, so reviewr
+keeps diffing from where the branch started even after a fetch. So after fetching, for each agent
+that isn't mid-turn, a worktree whose branch has no uncommitted or untracked changes and whose files
+are identical to `origin/<default>` (i.e. everything on it has landed) has its branch moved to
+`origin/<default>` with `git reset --soft`, which changes no files. The old commit is kept as
+`refs/fetch-origin/<branch>`; undo with `git reset --soft refs/fetch-origin/<branch>`. A branch
+with new commits since the squash merge is left alone: rebase it onto `origin/<default>` yourself,
+or start follow-up work in a new worktree.
