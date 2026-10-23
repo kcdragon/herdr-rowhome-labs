@@ -70,3 +70,35 @@ are identical to `origin/<default>` (i.e. everything on it has landed) has its b
 `refs/fetch-origin/<branch>`; undo with `git reset --soft refs/fetch-origin/<branch>`. A branch
 with new commits since the squash merge is left alone: rebase it onto `origin/<default>` yourself,
 or start follow-up work in a new worktree.
+
+## plugins/worktree-setup
+
+Lays out every new worktree (herdr's "New worktree", `prefix+shift+g`, or `herdr worktree
+create`) using the project's Conductor scripts:
+
+```
+┌──────────────────┬──────────────────┐
+│ claude (focused) │ app:             │
+├──────────────────┤ setup, then run  │
+│ reviewr          │                  │
+└──────────────────┴──────────────────┘
+```
+
+1. Fetches and fast-forwards the new branch to `origin/<default>` (herdr branches from the main
+   checkout's possibly stale `HEAD`; fast-forward only, so nothing can be lost).
+2. Opens an `app` pane on the right that runs `scripts.setup`, then every `scripts.run` command
+   side by side (`[scripts.run.<name>]` tables included). If setup fails, nothing runs and you get
+   a notification; rerun with the command shown in the pane. Ctrl-C stops the run scripts.
+3. Names the first pane `claude` and starts Claude there, focused (`agent_command` in
+   `config/plugins/rowhome.worktree-setup/config.sh`). `reviewr-below` then adds reviewr under it;
+   reviewr's own `auto_open` is off so it doesn't grab the first pane first.
+
+Scripts are read like Conductor does, key by key: `.conductor/settings.local.toml` from the main
+checkout, then `.conductor/settings.toml`, then `conductor.json`. No `CONDUCTOR_*` variables are
+set — each repo works out its own per-worktree ports and databases.
+
+**Deleting:** `prefix+a` (in a worktree) opens a confirm overlay, runs `scripts.archive` inside
+the worktree, and only if it succeeds has herdr delete the checkout and close the workspace. The
+branch is kept. It refuses worktrees with uncommitted changes. Herdr has no hook before its own
+"Delete worktree checkout", which removes the checkout before anything could run there, so use
+`prefix+a` for worktrees whose archive script matters.

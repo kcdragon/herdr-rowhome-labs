@@ -4,3 +4,6 @@ default_scope = "branch"
 # Open as a split below the agent's chat.
 toggle_placement = "split"
 toggle_direction = "down"
+# Don't open on new worktrees: rowhome.worktree-setup lays them out, and
+# rowhome.reviewr-below puts reviewr under Claude once it starts.
+auto_open = false

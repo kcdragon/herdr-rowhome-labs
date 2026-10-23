@@ -1,0 +1,25 @@
+id = "rowhome.worktree-setup"
+name = "Worktree setup"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Lay out new worktrees with Claude and the app, and archive them on delete, using the project's Conductor scripts"
+platforms = ["linux", "macos"]
+
+# New worktrees (herdr's "New worktree" or `herdr worktree create`).
+[[events]]
+on = "worktree.created"
+command = ["bash", "created.sh"]
+
+# Bound to prefix+a. herdr has no hook before its own delete, and archive
+# scripts need the checkout, so deleting through this runs them first.
+[[actions]]
+id = "delete"
+title = "Archive and delete this worktree"
+contexts = ["workspace"]
+command = ["bash", "delete.sh"]
+
+[[panes]]
+id = "delete"
+title = "Delete worktree"
+placement = "overlay"
+command = ["bash", "delete-pane.sh"]
