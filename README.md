@@ -49,7 +49,8 @@ diff in a pane, opened as a split below the agent. Configured to open on the `br
 
 Keeps a reviewr pane below the first agent of every tab. Runs on server startup and whenever
 herdr detects a new agent, skipping tabs that already have a reviewr pane or whose agent isn't
-in a git repo. Run the `rowhome.reviewr-below.ensure` action to restore panes you closed.
+in a git repo, and workspaces with a reviewr tab of their own (new worktrees, see
+`worktree-setup`). Run the `rowhome.reviewr-below.ensure` action to restore panes you closed.
 
 ## plugins/fetch-origin
 
@@ -76,7 +77,8 @@ or start follow-up work in a new worktree.
 Lays out every new worktree (herdr's "New worktree", `prefix+shift+g`, or `herdr worktree
 create`) using the project's Conductor scripts:
 
-- tab `claude`: Claude, focused, with reviewr below it
+- tab `claude`: Claude, focused
+- tab `reviewr`: reviewr on the worktree's diff
 - tab `app`: the project's setup script, then its run scripts
 
 1. Fetches and fast-forwards the new branch to `origin/<default>` (herdr branches from the main
@@ -84,9 +86,10 @@ create`) using the project's Conductor scripts:
 2. Opens an `app` tab that runs `scripts.setup`, then every `scripts.run` command
    side by side (`[scripts.run.<name>]` tables included). If setup fails, nothing runs and you get
    a notification; rerun with the command shown in the tab. Ctrl-C stops the run scripts.
-3. Names the first tab `claude` and starts Claude there; that tab stays active (`agent_command`
-   in `config/plugins/rowhome.worktree-setup/config.sh`). `reviewr-below` then adds reviewr under
-   it; reviewr's own `auto_open` is off so it doesn't grab the first pane first.
+3. Opens reviewr in a `reviewr` tab. Reviewr's own `auto_open` is off so it doesn't split the
+   first pane, and `reviewr-below` skips workspaces that have a reviewr tab.
+4. Names the first tab `claude` and starts Claude there; that tab stays active (`agent_command`
+   in `config/plugins/rowhome.worktree-setup/config.sh`).
 
 Scripts are read like Conductor does, key by key: `.conductor/settings.local.toml` from the main
 checkout, then `.conductor/settings.toml`, then `conductor.json`. No `CONDUCTOR_*` variables are

@@ -20,6 +20,9 @@ while IFS=$'\t' read -r pane dir; do
     --placement split --direction down --target-pane "$pane" --cwd "$dir" --no-focus >/dev/null
 done < <(jq -r '
   .result.panes
+  # Workspaces with a reviewr tab of their own (see worktree-setup) are left alone.
+  | group_by(.workspace_id)[]
+  | select(any(group_by(.tab_id)[]; all(.[]; .label == "reviewr")) | not)
   | group_by(.tab_id)[]
   | select(all(.[]; .label != "reviewr"))
   | map(select(.agent != null)) | first // empty

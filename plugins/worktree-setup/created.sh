@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # A new worktree: bring its branch up to origin's default branch, start Claude
-# in the first tab, and run the project's setup and run scripts in an "app"
-# tab. (reviewr-below then adds reviewr under Claude.)
+# in the first tab, open reviewr in a second, and run the project's setup and
+# run scripts in an "app" tab.
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
 
@@ -17,6 +17,13 @@ if [[ -n "$base" && -z "$(git -C "$dir" status --porcelain)" ]] &&
   git -C "$dir" merge-base --is-ancestor HEAD "$base"; then
   git -C "$dir" merge --quiet --ff-only "$base"
 fi
+
+# Reviewr gets a tab of its own. Opened before Claude starts, so reviewr-below
+# sees it and leaves the claude tab alone.
+out="$("$HERDR" plugin pane open --plugin persiyanov.reviewr --entrypoint pane --placement tab \
+  --workspace "${HERDR_WORKSPACE_ID:-}" --cwd "$dir" --no-focus 2>&1)"
+review_tab="$(jq -r '.result.plugin_pane.pane.tab_id // empty' <<<"$out" 2>/dev/null)"
+[[ -n "$review_tab" ]] && "$HERDR" tab rename "$review_tab" reviewr >/dev/null
 
 scripts="$(conductor_scripts "$dir")"
 if [[ -n "$(jq -r '(.setup // "") + (.run // [] | join(""))' <<<"$scripts")" ]]; then
