@@ -51,27 +51,6 @@ Keeps a reviewr pane below the first agent of every tab. Runs on server startup 
 herdr detects a new agent, skipping tabs that already have a reviewr pane or whose agent isn't
 in a git repo. Run the `rowhome.reviewr-below.ensure` action to restore panes you closed.
 
-## plugins/new-task
-
-Conductor-style workspaces. `prefix+a`, for the focused pane's repo (its main checkout, even from
-a worktree):
-
-1. creates a git worktree on a made-up branch (e.g. `lucky-otter`) from `origin/HEAD` (after a fetch), opened as a new
-   herdr workspace grouped under the repo, and focuses it
-2. exports Conductor's variables in that pane's shell: `CONDUCTOR_WORKSPACE_NAME`,
-   `CONDUCTOR_WORKSPACE_PATH`, `CONDUCTOR_ROOT_PATH`, `CONDUCTOR_DEFAULT_BRANCH`,
-   `CONDUCTOR_IS_LOCAL=1` and `CONDUCTOR_PORT` (the first of ten ports reserved for this
-   worktree, starting at 55100)
-3. runs the project's Conductor setup script there: `scripts.setup` from
-   `.conductor/settings.local.toml` (read from the main checkout), `.conductor/settings.toml`,
-   or `conductor.json`. If it fails, the agent isn't started
-4. starts the agent (Claude by default) with no prompt, for you to type the first one
-
-The variables only exist in that first pane; other panes in the workspace don't get them.
-Defaults (agent kind, branch prefix) live in `config/plugins/rowhome.new-task/config.sh`.
-Worktrees go under herdr's `worktrees.directory` (default `~/.herdr/worktrees`). Remove one with
-herdr's "Delete worktree checkout" on the workspace row; Conductor `archive` scripts aren't run.
-
 ## plugins/fetch-origin
 
 Keeps `origin/main` current in every agent's repo, so reviewr's branch diff stops showing work
