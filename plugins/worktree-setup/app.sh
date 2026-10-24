@@ -21,6 +21,12 @@ if [[ -n "$setup" ]]; then
   fi
 fi
 
+# direnv trusts by path, so a fresh worktree's .envrc/.env (often a symlink the
+# setup script just made) starts out blocked.
+if command -v direnv >/dev/null && [[ -e .envrc || -e .env ]]; then
+  direnv allow "$dir"
+fi
+
 pids=()
 while IFS= read -r cmd; do
   say "\$ $cmd"
