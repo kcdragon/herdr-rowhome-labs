@@ -45,13 +45,6 @@ diff in a pane, opened as a split below the agent. Configured to open on the `br
 (commits since the base branch plus uncommitted changes); `u` switches to uncommitted only,
 `3` shows the PR. `prefix+d` toggles it for the workspace.
 
-## plugins/reviewr-below
-
-Keeps a reviewr pane below the first agent of every tab. Runs on server startup and whenever
-herdr detects a new agent, skipping tabs that already have a reviewr pane or whose agent isn't
-in a git repo, and workspaces with a reviewr tab of their own (new worktrees, see
-`worktree-setup`). Run the `rowhome.reviewr-below.ensure` action to restore panes you closed.
-
 ## plugins/fetch-origin
 
 Keeps `origin/main` current in every agent's repo, so reviewr's branch diff stops showing work
@@ -87,7 +80,7 @@ create`) using the project's Conductor scripts:
    side by side (`[scripts.run.<name>]` tables included). If setup fails, nothing runs and you get
    a notification; rerun with the command shown in the tab. Ctrl-C stops the run scripts.
 3. Opens reviewr in a `reviewr` tab. Reviewr's own `auto_open` is off so it doesn't split the
-   first pane, and `reviewr-below` skips workspaces that have a reviewr tab.
+   first pane.
 4. Names the first tab `claude` and starts Claude there; that tab stays active (`agent_command`
    in `config/plugins/rowhome.worktree-setup/config.sh`).
 

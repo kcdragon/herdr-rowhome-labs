@@ -18,8 +18,7 @@ if [[ -n "$base" && -z "$(git -C "$dir" status --porcelain)" ]] &&
   git -C "$dir" merge --quiet --ff-only "$base"
 fi
 
-# Reviewr gets a tab of its own. Opened before Claude starts, so reviewr-below
-# sees it and leaves the claude tab alone.
+# Reviewr gets a tab of its own.
 out="$("$HERDR" plugin pane open --plugin persiyanov.reviewr --entrypoint pane --placement tab \
   --workspace "${HERDR_WORKSPACE_ID:-}" --cwd "$dir" --no-focus 2>&1)"
 review_tab="$(jq -r '.result.plugin_pane.pane.tab_id // empty' <<<"$out" 2>/dev/null)"
