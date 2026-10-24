@@ -27,6 +27,20 @@ if command -v direnv >/dev/null && [[ -e .envrc || -e .env ]]; then
   direnv allow "$dir"
 fi
 
+# Logs scroll the dev server's URL away, so put it in the tab name once it's
+# printed: "app localhost:3000".
+if [[ -n "${HERDR_PANE_ID:-}" ]]; then
+  (
+    out="$("$HERDR" pane wait-output "$HERDR_PANE_ID" \
+      --regex 'https?://(localhost|127\.0\.0\.1|0\.0\.0\.0)(:[0-9]+)?' 2>/dev/null)" || exit 0
+    url="$(jq -r '.result.matched_line // ""' <<<"$out" |
+      grep -oE '(localhost|127\.0\.0\.1|0\.0\.0\.0)(:[0-9]+)?' | head -1)"
+    tab="$("$HERDR" pane get "$HERDR_PANE_ID" | jq -r '.result.pane.tab_id // empty')"
+    [[ -n "$url" && -n "$tab" ]] && "$HERDR" tab rename "$tab" "app ${url/0.0.0.0/localhost}" >/dev/null
+  ) &
+  watcher=$!
+fi
+
 pids=()
 while IFS= read -r cmd; do
   say "\$ $cmd"
@@ -34,5 +48,6 @@ while IFS= read -r cmd; do
   pids+=($!)
 done < <(jq -r '.run // [] | .[]' <<<"$scripts")
 # Ctrl-C stops them all.
-trap 'kill "${pids[@]}" 2>/dev/null' INT TERM
-(( ${#pids[@]} )) && wait
+trap 'kill "${pids[@]}" ${watcher:-} 2>/dev/null' INT TERM
+(( ${#pids[@]} )) && wait "${pids[@]}"
+[[ -n "${watcher:-}" ]] && kill "$watcher" 2>/dev/null
