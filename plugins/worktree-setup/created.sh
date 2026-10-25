@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # A new worktree: bring its branch up to origin's default branch, start Claude
-# in the first tab, open reviewr in a second, and run the project's setup and
-# run scripts in an "app" tab.
+# in the first tab, open reviewr in a second, run the project's setup and run
+# scripts in an "app" tab, and leave a plain shell in a last "terminal" tab.
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
 
@@ -34,6 +34,8 @@ if [[ -n "$(jq -r '(.setup // "") + (.run // [] | join(""))' <<<"$scripts")" ]];
     notify "Worktree setup" "Couldn't open the app tab in $(basename "$dir"): $out"
   fi
 fi
+
+"$HERDR" tab create --workspace "${HERDR_WORKSPACE_ID:-}" --cwd "$dir" --label terminal --no-focus >/dev/null
 
 [[ -n "${HERDR_TAB_ID:-}" ]] && "$HERDR" tab rename "$HERDR_TAB_ID" "$agent_command" >/dev/null
 "$HERDR" pane run "$pane" "$agent_command" >/dev/null
