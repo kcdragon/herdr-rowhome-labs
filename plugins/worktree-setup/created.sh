@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # A new worktree: bring its branch up to origin's default branch, start Claude
 # in the first tab, open reviewr in a second, run the project's setup and run
-# scripts in an "app" tab, and leave a plain shell in a last "terminal" tab.
+# scripts in an "app" tab (with the app's URL in a strip below), and leave a
+# plain shell in a last "terminal" tab.
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
 
@@ -30,6 +31,11 @@ if [[ -n "$(jq -r '(.setup // "") + (.run // [] | join(""))' <<<"$scripts")" ]];
   app="$(jq -r '.result.root_pane.pane_id // empty' <<<"$out" 2>/dev/null)"
   if [[ -n "$app" ]]; then
     "$HERDR" pane run "$app" "bash $(printf %q "$PLUGIN_ROOT/app.sh")" >/dev/null
+    # A short strip below it shows the app's URL as a link once it's up.
+    out="$("$HERDR" pane split "$app" --direction down --ratio 0.9 --cwd "$dir" --no-focus 2>&1)"
+    url_pane="$(jq -r '.result.pane.pane_id // empty' <<<"$out" 2>/dev/null)"
+    [[ -n "$url_pane" ]] &&
+      "$HERDR" pane run "$url_pane" "bash $(printf %q "$PLUGIN_ROOT/url.sh") $app" >/dev/null
   else
     notify "Worktree setup" "Couldn't open the app tab in $(basename "$dir"): $out"
   fi

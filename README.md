@@ -72,7 +72,8 @@ create`) using the project's Conductor scripts:
 
 - tab `claude`: Claude, focused
 - tab `reviewr`: reviewr on the worktree's diff
-- tab `app`: the project's setup script, then its run scripts
+- tab `app`: the project's setup script, then its run scripts, with a short strip below showing
+  the app's local URL as a clickable link once the server prints it
 - tab `terminal`: a plain shell in the worktree
 
 1. Fetches and fast-forwards the new branch to `origin/<default>` (herdr branches from the main
