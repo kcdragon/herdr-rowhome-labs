@@ -42,9 +42,12 @@ if [[ -n "${HERDR_PANE_ID:-}" ]]; then
 fi
 
 pids=()
+# Background jobs get /dev/null as stdin, and watchers like `tailwindcss --watch`
+# exit on EOF (taking foreman's whole Procfile down), so hand them the pane's.
+exec 3<&0
 while IFS= read -r cmd; do
   say "\$ $cmd"
-  "$shell" -c "$cmd" &
+  "$shell" -c "$cmd" <&3 &
   pids+=($!)
 done < <(jq -r '.run // [] | .[]' <<<"$scripts")
 # Ctrl-C stops them all.
