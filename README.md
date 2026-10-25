@@ -72,7 +72,9 @@ create`) using the project's Conductor scripts:
 
 - tab `claude`: Claude, focused
 - tab `reviewr`: reviewr on the worktree's diff
-- tab `app`: the project's setup script, then its run scripts
+- tab `app`: the project's setup script, then its run scripts, with a short strip below showing
+  the app's local URL as a clickable link once the server prints it
+- tab `terminal`: a plain shell in the worktree
 
 1. Fetches and fast-forwards the new branch to `origin/<default>` (herdr branches from the main
    checkout's possibly stale `HEAD`; fast-forward only, so nothing can be lost).
@@ -81,7 +83,8 @@ create`) using the project's Conductor scripts:
    a notification; rerun with the command shown in the tab. Ctrl-C stops the run scripts.
 3. Opens reviewr in a `reviewr` tab. Reviewr's own `auto_open` is off so it doesn't split the
    first pane.
-4. Names the first tab `claude` and starts Claude there; that tab stays active (`agent_command`
+4. Opens a `terminal` tab with a plain shell in the worktree.
+5. Names the first tab `claude` and starts Claude there; that tab stays active (`agent_command`
    in `config/plugins/rowhome.worktree-setup/config.sh`).
 
 Scripts are read like Conductor does, key by key: `.conductor/settings.local.toml` from the main
