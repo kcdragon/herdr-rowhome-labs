@@ -4,6 +4,7 @@ HERDR="${HERDR_BIN_PATH:-herdr}"
 PLUGIN_ROOT="${HERDR_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 agent_command=claude
+confirm_delete=true
 CONFIG="${HERDR_PLUGIN_CONFIG_DIR:-}/config.sh"
 [[ -f "$CONFIG" ]] && source "$CONFIG"
 

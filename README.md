@@ -93,6 +93,7 @@ set — each repo works out its own per-worktree ports and databases.
 
 **Deleting:** `prefix+a` (in a worktree) opens a confirm overlay, runs `scripts.archive` inside
 the worktree, and only if it succeeds has herdr delete the checkout and close the workspace. The
-branch is kept. It refuses worktrees with uncommitted changes. Herdr has no hook before its own
-"Delete worktree checkout", which removes the checkout before anything could run there, so use
-`prefix+a` for worktrees whose archive script matters.
+branch is kept. It refuses worktrees with uncommitted changes. `confirm_delete=false` in
+`config/plugins/rowhome.worktree-setup/config.sh` (the setting here) skips the confirm. Herdr has
+no hook before its own "Delete worktree checkout", which removes the checkout before anything could
+run there, so use `prefix+a` for worktrees whose archive script matters.
