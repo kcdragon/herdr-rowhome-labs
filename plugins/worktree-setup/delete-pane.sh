@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# The prefix+a overlay: confirm, run the project's Conductor archive script in
-# the worktree, then have herdr delete it. The branch itself is kept.
+# The prefix+a overlay: confirm (unless confirm_delete=false), run the project's
+# Conductor archive script in the worktree, then have herdr delete it. The
+# branch itself is kept.
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
 
@@ -22,10 +23,12 @@ if [[ -n "$archive" ]]; then
 else
   echo "No archive script."
 fi
-printf '\nDelete it? [y/N] '
-read -rsn1 answer
-echo
-[[ "$answer" == [yY] ]] || exit 0
+if [[ "$confirm_delete" == true ]]; then
+  printf '\nDelete it? [y/N] '
+  read -rsn1 answer
+  echo
+  [[ "$answer" == [yY] ]] || exit 0
+fi
 
 if [[ -n "$archive" ]]; then
   printf '\n\033[1m$ %s\033[0m\n' "$archive"
