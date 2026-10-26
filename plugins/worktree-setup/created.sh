@@ -44,4 +44,7 @@ fi
 "$HERDR" tab create --workspace "${HERDR_WORKSPACE_ID:-}" --cwd "$dir" --label terminal --no-focus >/dev/null
 
 [[ -n "${HERDR_TAB_ID:-}" ]] && "$HERDR" tab rename "$HERDR_TAB_ID" "$agent_command" >/dev/null
-"$HERDR" pane run "$pane" "$agent_command" >/dev/null
+cmd="$agent_command"
+prompt="$(agent_prompt "$dir")"
+[[ -n "$prompt" ]] && cmd+=" $(printf %q "$prompt")"
+"$HERDR" pane run "$pane" "$cmd" >/dev/null

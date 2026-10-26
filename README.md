@@ -87,6 +87,11 @@ create`) using the project's Conductor scripts:
 5. Names the first tab `claude` and starts Claude there; that tab stays active (`agent_command`
    in `config/plugins/rowhome.worktree-setup/config.sh`).
 
+**First prompt:** Claude starts with a first message from the first of these that exists:
+`.herdr/prompt.local.md` in the main checkout (untracked, just for you), `.herdr/prompt.md` in the
+worktree (committed with the repo), or `agent_prompt` in `config.sh` (empty here, so nothing is
+sent). It's sent as soon as Claude starts.
+
 Scripts are read like Conductor does, key by key: `.conductor/settings.local.toml` from the main
 checkout, then `.conductor/settings.toml`, then `conductor.json`. No `CONDUCTOR_*` variables are
 set — each repo works out its own per-worktree ports and databases.
