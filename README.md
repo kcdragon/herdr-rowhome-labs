@@ -80,7 +80,9 @@ create`) using the project's Conductor scripts:
    checkout's possibly stale `HEAD`; fast-forward only, so nothing can be lost).
 2. Opens an `app` tab that runs `scripts.setup`, then every `scripts.run` command
    side by side (`[scripts.run.<name>]` tables included). If setup fails, nothing runs and you get
-   a notification; rerun with the command shown in the tab. Ctrl-C stops the run scripts.
+   a notification; rerun with the command shown in the tab. Ctrl-C stops the run scripts. When
+   they stop (Ctrl-C, or a crash, which also notifies you), the tab waits for a key: `r` (or
+   Enter) restarts them, `s` reruns setup first, `q` drops to a shell.
 3. Opens reviewr in a `reviewr` tab. Reviewr's own `auto_open` is off so it doesn't split the
    first pane.
 4. Opens a `terminal` tab with a plain shell in the worktree.
