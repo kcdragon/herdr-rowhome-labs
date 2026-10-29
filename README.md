@@ -16,6 +16,8 @@ git clone https://github.com/kcdragon/herdr-rowhome-labs.git ~/Code/herdr-rowhom
   when the ref changes), and uninstalls/unlinks any plugin not listed there — including a
   local plugin linked from an old clone path
 - symlinks `config/plugins/<plugin-id>/*` into that plugin's config dir
+- installs herdr's Claude Code integration (or updates it when outdated), which reports each
+  Claude pane's session id so herdr resumes Claude after a restart or reboot
 - reloads the running herdr server
 
 Herdr doesn't copy config or plugins to SSH machines, and plugins run on the machine running
@@ -88,6 +90,12 @@ create`) using the project's Conductor scripts:
 4. Opens a `terminal` tab with a plain shell in the worktree.
 5. Names the first tab `claude` and starts Claude there; that tab stays active (`agent_command`
    in `config/plugins/rowhome.worktree-setup/config.sh`).
+
+**After a restart:** herdr restores the layout but not the processes, so reviewr panes and
+`app` tabs come back as bare shells. A startup hook (`restore.sh`) relaunches them: a fresh
+reviewr pane in each `reviewr`-labeled pane's place, and `app.sh` plus its URL strip in each
+`app` tab. Panes already running something are left alone. Claude panes are resumed by herdr
+itself through the Claude integration (see above).
 
 **First prompt:** Claude starts with a first message from the first of these that exists:
 `.herdr/prompt.local.md` in the main checkout (untracked, just for you), `.herdr/prompt.md` in the

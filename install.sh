@@ -100,6 +100,13 @@ for dir in "$REPO"/config/plugins/*/; do
   done
 done
 
+# Claude reports its session id to herdr through this hook, which is what lets
+# herdr resume Claude panes after a restart. Reinstalls when outdated.
+if command -v claude >/dev/null && [[ $'\n'"$(herdr integration status 2>/dev/null)" != *$'\n'"claude: current"* ]]; then
+  herdr integration install claude >/dev/null
+  echo "installed herdr claude integration"
+fi
+
 if herdr status server >/dev/null 2>&1; then
   herdr server reload-config >/dev/null && echo "reloaded herdr config"
 fi

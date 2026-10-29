@@ -10,6 +10,11 @@ platforms = ["linux", "macos"]
 on = "worktree.created"
 command = ["bash", "created.sh"]
 
+# After a server restart, relaunch the reviewr panes and app tabs, which come
+# back as bare shells.
+[[startup]]
+command = ["bash", "restore.sh"]
+
 # Bound to prefix+a. herdr has no hook before its own delete, and archive
 # scripts need the checkout, so deleting through this runs them first.
 [[actions]]
