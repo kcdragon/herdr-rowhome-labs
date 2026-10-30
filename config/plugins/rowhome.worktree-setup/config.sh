@@ -11,8 +11,10 @@ You work through Basecamp 42 stories using the basecamp42 skill and MCP.
   me if none does), write its name there, and make sure `.herdr/*.local*` is in
   that checkout's .git/info/exclude so it stays untracked.
 - Given a story number: read the whole story with get_story, claim it, and work it.
-- Given a task with no story: create a story for it in that project, claim it, and
-  work it.
+- Given a task with no story: investigate first. Create a story in that project,
+  claim it, and work it only if there's something to change (code, content,
+  config). If the answer is just information or "nothing to fix", reply with that
+  and don't create a story.
 - Once you have a story, rename this worktree's branch with
   `git branch -m story-<number>-<slug>` and its herdr workspace with
   `herdr workspace rename "$HERDR_WORKSPACE_ID" story-<number>-<slug>`.
