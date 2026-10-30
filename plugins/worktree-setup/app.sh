@@ -8,6 +8,11 @@ source "$(dirname "$0")/lib.sh"
 dir="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "Not in a git checkout"; exit 1; }
 cd "$dir" || exit 1
 scripts="$(conductor_scripts "$dir")"
+# A port block no other worktree on this machine holds (see worktree_port).
+if [[ -z "${CONDUCTOR_PORT:-}" ]]; then
+  CONDUCTOR_PORT="$(worktree_port "$dir")"
+  [[ -n "$CONDUCTOR_PORT" ]] && export CONDUCTOR_PORT || unset CONDUCTOR_PORT
+fi
 setup="$(jq -r '.setup // ""' <<<"$scripts")"
 shell="${SHELL:-/bin/sh}"
 

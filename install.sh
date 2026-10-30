@@ -29,6 +29,8 @@ link() {
 }
 
 link "$REPO/config/config.toml" "$HERDR_CONFIG/config.toml"
+# config.toml's terminal.default_shell: herdr doesn't expand ~, so it's found on PATH.
+link "$REPO/plugins/worktree-setup/shell.sh" "$HOME/.local/bin/herdr-shell"
 
 list_plugins() { herdr plugin list --json | jq -c '.result.plugins'; }
 

@@ -1,5 +1,10 @@
 onboarding = false
 
+# Panes start through the worktree-setup plugin's shell.sh (linked into
+# ~/.local/bin as herdr-shell by install.sh), which gives every pane in a worktree its CONDUCTOR_PORT.
+[terminal]
+default_shell = "herdr-shell"
+
 [ui.toast]
 delivery = "terminal"
 

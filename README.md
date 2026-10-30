@@ -16,6 +16,8 @@ git clone https://github.com/kcdragon/herdr-rowhome-labs.git ~/Code/herdr-rowhom
   when the ref changes), and uninstalls/unlinks any plugin not listed there — including a
   local plugin linked from an old clone path
 - symlinks `config/plugins/<plugin-id>/*` into that plugin's config dir
+- symlinks `plugins/worktree-setup/shell.sh` → `~/.local/bin/herdr-shell`, the shell every pane
+  starts through (`terminal.default_shell`; `~/.local/bin` must be on herdr's `PATH`)
 - installs herdr's Claude Code integration (or updates it when outdated), which reports each
   Claude pane's session id so herdr resumes Claude after a restart or reboot
 - reloads the running herdr server
@@ -90,6 +92,15 @@ create`) using the project's Conductor scripts:
 4. Opens a `terminal` tab with a plain shell in the worktree.
 5. Names the first tab `claude` and starts Claude there; that tab stays active (`agent_command`
    in `config/plugins/rowhome.worktree-setup/config.sh`).
+
+**Ports:** repos give each worktree a block of 10 ports (55100-59099, `CONDUCTOR_PORT` first)
+by hashing its path, each on its own, so worktrees of different repos can collide. The plugin keeps
+a machine-wide registry in `~/.herdr/ports` instead: a worktree keeps its hashed block unless
+another worktree holds it or something else is listening there, then gets the next free one.
+Every pane starts through `shell.sh`, which exports the pane's worktree's `CONDUCTOR_PORT` before
+starting your shell, so Claude, the `app` tab, terminals, and panes restored after a reboot all
+get it; every repo's `bin/worktree-env` honors a `CONDUCTOR_PORT` that's already set. Entries for
+deleted worktrees are dropped.
 
 **After a restart:** herdr restores the layout but not the processes, so reviewr panes and
 `app` tabs come back as bare shells. A startup hook (`restore.sh`) relaunches them: a fresh
