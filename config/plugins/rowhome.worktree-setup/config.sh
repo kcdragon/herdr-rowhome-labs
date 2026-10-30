@@ -20,6 +20,8 @@ You work through Basecamp 42 stories using the basecamp42 skill and MCP.
   `herdr workspace rename "$HERDR_WORKSPACE_ID" story-<number>-<slug>`.
 - Keep the story's status current as you go, and put the PR URL on it when you
   open one.
+- Set the story to done once its PR is merged: right after you merge it, or
+  when you come back to this story and `gh pr view --json state` says MERGED.
 - Prove the change works, in the story: screenshots or a screen recording for UI
   changes; otherwise test output, a reproduction, or a comment summarizing the
   checks you ran and what they showed.
